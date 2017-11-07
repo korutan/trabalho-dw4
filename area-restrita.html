@@ -1,0 +1,979 @@
+<html lang="pt-br">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+            <title>Loja DWT-4</title>
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+            <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+            <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+            <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+            <script src="./dao.js"></script>
+            <script>
+                session = sessionStorage.getItem("session");
+
+                if(!session) window.location.href = "./index.html";
+
+                function logout(){
+                    sessionStorage.removeItem("session");
+                    document.cookie = "";
+
+                    window.location.href = "./index.html";
+                }
+
+                function esconderCruds(){
+                    $("#linkCategorias").removeClass("active");
+                    $("#linkProdutos").removeClass("active");
+                    $("#linkClientes").removeClass("active");
+                    $("#linkCompras").removeClass("active");
+                    $("#linkAdministradores").removeClass("active");
+                    $("#divCategorias")[0].hidden = true;
+                    $("#divProdutos")[0].hidden = true;
+                    $("#divClientes")[0].hidden = true;
+                    $("#divCompras")[0].hidden = true;
+                    $("#divAdministradores")[0].hidden = true;
+                }
+
+                function carregarCrudCategorias(){
+                    esconderCruds();
+                    $("#linkCategorias").addClass("active");
+                    var categorias = obterCategorias();
+                    var div = $("#divCategorias")[0];                
+                    var tabela = $("#tableCategorias")[0];
+                    var corpoTabela = tabela.tBodies[0];
+
+                    div.hidden = false;
+
+                    var html = categorias.map(c => `<tr>
+                        <td>${c.id}</td>
+                        <td>${c.descricao}</td>
+                        <td>
+                            <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCategoria('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-block" onclick="excluirCategoria('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                        </td>
+                    </tr>`);
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function cadastrarOuAtualizarCategoria(){
+                    var id = $("#hiddenIdCategoria").val();
+                    var descricao = $("#inputDescricaoCategoria").val();
+
+                    var categoria = {
+                        id: id,
+                        descricao: descricao
+                    };
+
+                    salvarCategoria(categoria);
+
+                    $("#modalCategorias").modal('toggle');
+                    carregarCrudCategorias();
+                }
+
+                function excluirCategoria(id){
+                    deletarCategoria(id);
+
+                    carregarCrudCategorias();
+                } 
+
+                function limparCamposCategoria(){
+                    $("#inputDescricaoCategoria").val("");
+                }
+
+                function pesquisarCategoria(){
+                    var criterio = new RegExp($("#inputCategoria").val().toUpperCase());
+                    
+                    var categorias = obterCategorias().filter(c => {
+                        return criterio.test(c.id.toUpperCase())
+                            || criterio.test(c.descricao.toUpperCase())
+                    });
+
+                    var tabela = $("#tableCategorias")[0];
+                    var corpoTabela = tabela.tBodies[0];                    
+
+                    var html = categorias.map(c => `<tr>
+                        <td>${c.id}</td>
+                        <td>${c.descricao}</td>
+                        <td>
+                            <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCategoria('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-block" onclick="excluirCategoria('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                        </td>
+                    </tr>`);
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function exibirAtualizacaoCategoria(id){
+                    var categorias = obterCategorias();
+
+                    var categoria = categorias.find(c => c.id == id);
+
+                    $("#hiddenIdCategoria").val(categoria.id);
+                    $("#inputDescricaoCategoria").val(categoria.descricao);
+
+                    $("#modalCategorias").modal('toggle');
+                }
+
+
+
+                function carregarCrudProdutos(){
+                    esconderCruds();
+                    $("#linkProdutos").addClass("active");
+                    var produtos = obterProdutos();
+                    var categorias = obterCategorias();
+
+                    var div = $("#divProdutos")[0];                
+                    var tabela = $("#tableProdutos")[0];
+                    var corpoTabela = tabela.tBodies[0];
+                    var comboboxCategorias = $("#selectCategoriaProduto")[0];
+                    
+                    div.hidden = false;
+
+                    var htmlCombobox = categorias.map(c => {
+                        return `<option value="${c.id}">${c.descricao}</option>`;
+                            
+                    });
+
+                    $(comboboxCategorias).empty();
+                    $(comboboxCategorias).append(htmlCombobox);
+
+                    var html = produtos.map(p => {
+                        var categoria = categorias.find(c => c.id == p.idCategoria) ||{};
+
+                        return `<tr>
+                            <td>${p.id}</td>
+                            <td>${p.idCategoria}</td>
+                            <td>${categoria.descricao}</td>
+                            <td>${p.nome}</td>
+                            <td>${p.descricao}</td>
+                            <td>${p.valor}</td><
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoProduto('${p.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirProduto('${p.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        /tr>`
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function cadastrarOuAtualizarProduto(){
+                    var id = $("#hiddenIdProduto").val();
+                    var idCategoria = $("#selectCategoriaProduto").val();
+                    var nome = $("#inputNomeProduto").val();
+                    var descricao = $("#inputDescricaoProduto").val();
+                    var valor = $("#inputValorProduto").val();
+                    
+                    var produto = {
+                        id: id,
+                        idCategoria: idCategoria,
+                        nome: nome,
+                        descricao: descricao,
+                        valor: valor
+                    };
+
+                    salvarProduto(produto);
+
+                    $("#modalProdutos").modal('toggle');
+                    carregarCrudProdutos();
+                }
+
+                function excluirProduto(id){
+                    deletarProduto(id);
+
+                    carregarCrudProdutos();
+                } 
+
+                function limparCamposProduto(){
+                    $("#hiddenIdProduto").val("");
+                    $("#selectCategoriaProduto").selectedIndex = 0;
+                    $("#inputNomeProduto").val("");
+                    $("#inputDescricaoProduto").val("");
+                    $("#inputValorProduto").val("");
+                }
+
+                function pesquisarProduto(){
+                    var criterio = new RegExp($("#inputProduto").val().toUpperCase());
+                    
+                    var categorias = obterCategorias();
+                    var produtos = obterProdutos().filter(p => {
+                        var categoria = categorias.find(c => c.id == p.idCategoria);
+
+                        return criterio.test(p.id.toUpperCase())
+                            || criterio.test(p.idCategoria.toUpperCase())
+                            || criterio.test(categoria.descricao.toUpperCase())
+                            || criterio.test(p.nome.toUpperCase())
+                            || criterio.test(p.descricao.toUpperCase())
+                            || criterio.test(p.valor.toString().toUpperCase())
+                    });
+                    var tabela = $("#tableProdutos")[0];
+                    var corpoTabela = tabela.tBodies[0];                    
+
+                    var html = produtos.map(p => {
+                        var categoria = categorias.find(c => c.id == p.idCategoria) || {};
+
+                        return `<tr>
+                            <td>${p.id}</td>
+                            <td>${p.idCategoria}</td>
+                            <td>${categoria.descricao}</td>
+                            <td>${p.nome}</td>
+                            <td>${p.descricao}</td>
+                            <td>${p.valor}</td><
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoProduto('${p.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirProduto('${p.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        /tr>`
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function exibirAtualizacaoProduto(id){
+                    var produtos = obterProdutos();
+
+                    var produto = produtos.find(p => p.id == id);
+
+                    $("#hiddenIdProduto").val(produto.id);
+                    $("#selectCategoriaProduto").val(produto.idCategoria);
+
+                    $("#modalProdutos").modal('toggle');
+                }
+                
+
+
+
+                function carregarCrudClientes(){
+                    esconderCruds();
+                    $("#linkClientes").addClass("active");
+                    var clientes = obterClientes();
+                    var div = $("#divClientes")[0];                
+                    var tabela = $("#tableClientes")[0];
+                    var corpoTabela = tabela.tBodies[0];
+
+                    div.hidden = false;
+
+                    var html = clientes.map(c => {
+                        return `<tr>
+                            <td>${c.id}</td>
+                            <td>${c.nome}</td>
+                            <td>${c.dataNascimento}</td>
+                            <td>${c.telefone}</td>
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirCliente('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function cadastrarOuAtualizarCliente(){
+                    var id = $("#hiddenIdCliente").val();
+                    var nome = $("#inputNomeCliente").val();
+                    var dataNascimento = $("#inputDataNascimentoCliente").val();
+                    var telefone = $("#inputTelefoneCliente").val();
+                    
+                    var cliente = {
+                        id: id,
+                        nome: nome,
+                        dataNascimento: dataNascimento,
+                        telefone: telefone
+                    };
+
+                    salvarCliente(cliente);
+
+                    $("#modalClientes").modal('toggle');
+                    carregarCrudClientes();
+                }
+
+                function excluirCliente(id){
+                    deletarCliente(id);
+
+                    carregarCrudClientes();
+                } 
+
+                function limparCamposCliente(){
+                    $("#hiddenIdCliente").val("");
+                    $("#inputNomeCliente").val("");
+                    $("#inputDataNascimentoCliente").val("");
+                    $("#inputTelefoneCliente").val("");
+                }
+
+                function pesquisarCliente(){
+                    var criterio = new RegExp($("#inputCliente").val().toUpperCase());
+                    
+                    var clientes = obterClientes().filter(c => {
+                        return criterio.test(c.id.toUpperCase())
+                            || criterio.test(c.nome.toUpperCase())
+                            || criterio.test(c.dataNascimento.toUpperCase())
+                            || criterio.test(c.telefone.toUpperCase());
+                    });
+
+                    var tabela = $("#tableClientes")[0];
+                    var corpoTabela = tabela.tBodies[0];                    
+
+                    var html = clientes.map(c => {
+                        return `<tr>
+                            <td>${c.id}</td>
+                            <td>${c.nome}</td>
+                            <td>${c.dataNascimento}</td>
+                            <td>${c.telefone}</td>
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirCliente('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        </tr>`;
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function exibirAtualizacaoCliente(id){
+                    var clientes = obterClientes();
+
+                    var cliente = clientes.find(c => c.id == id);
+
+                    $("#hiddenIdCliente").val(cliente.id);
+                    $("#inputNomeCliente").val(cliente.nome);
+                    $("#inputDataNascimentoCliente").val(cliente.dataNascimento);
+                    $("#inputTelefoneCliente").val(cliente.telefone);
+
+                    $("#modalClientes").modal('toggle');
+                }
+
+
+
+                function carregarCrudCompras(){
+                    esconderCruds();
+                    $("#linkCompras").addClass("active");
+                    var compras = obterCompras();
+                    var div = $("#divCompras")[0];                
+                    var tabela = $("#tableCompras")[0];
+                    var corpoTabela = tabela.tBodies[0];
+
+                    var clientes = obterClientes();
+                    var comboboxClientes = $("#selectClienteCompra")[0];
+                    var htmlComboboxCliente = clientes.map(c => {
+                        return `<option value="${c.id}">${c.nome}</option>`;
+                            
+                    });
+
+                    $(comboboxClientes).empty();
+                    $(comboboxClientes).append(htmlComboboxCliente);
+
+                    var produtos = obterProdutos();
+                    var comboboxProdutos = $("#selectProdutoCompra")[0];
+                    var htmlComboboxProduto = produtos.map(p => {
+                        return `<option value="${p.id}">${p.nome}</option>`;
+                            
+                    });
+
+                    $(comboboxProdutos).empty();
+                    $(comboboxProdutos).append(htmlComboboxProduto);
+
+                    div.hidden = false;
+
+                    var html = compras.map(c => {
+                        var cliente = clientes.find(cli => cli.id == c.idCliente) || {};
+                        var produto = produtos.find(p => p.id == c.idProduto) || {};
+
+                        return `<tr>
+                            <td>${c.id}</td>
+                            <td>${c.idCliente}</td>
+                            <td>${cliente.nome}</td>
+                            <td>${c.idProduto}</td>
+                            <td>${produto.nome}</td>
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCompra('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirCompra('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        </tr>`
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function cadastrarOuAtualizarCompra(){
+                    var id = $("#hiddenIdCompra").val();
+                    var idCliente = $("#selectClienteCompra").val();
+                    var idProduto = $("#selectProdutoCompra").val();
+                    
+                    var cliente = {
+                        id: id,
+                        idCliente: idCliente,
+                        idProduto: idProduto
+                    };
+
+                    salvarCompra(cliente);
+
+                    $("#modalCompras").modal('toggle');
+                    carregarCrudCompras();
+                }
+
+                function excluirCompra(id){
+                    deletarCompra(id);
+
+                    carregarCrudCompras();
+                }
+
+                function exibirAtualizacaoCompra(id){
+                    var compras = obterCompras();
+
+                    var compra = compras.find(c => c.id == id);
+
+                    $("#hiddenIdCompra").val(compra.id);
+                    $("#selectClienteCompra").val(compra.idCliente);
+                    $("#selectProdutoCompra").val(compra.idProduto);
+
+                    $("#modalCompras").modal('toggle');
+                }
+
+                function pesquisarCompra(){
+                    var criterio = new RegExp($("#inputCompra").val().toUpperCase());
+                    
+                    var clientes = obterClientes();
+                    var produtos = obterProdutos();
+
+                    var compras = obterCompras().filter(c => {
+                        var cliente = clientes.find(cli => cli.id == c.idCliente);
+                        var produto = produtos.find(p => p.id == c.idProduto);
+
+                        return criterio.test(c.id.toUpperCase())
+                            || criterio.test(c.idCliente.toUpperCase())
+                            || criterio.test(cliente.nome.toUpperCase())
+                            || criterio.test(c.idProduto.toUpperCase())
+                            || criterio.test(produto.nome.toUpperCase());
+                    });
+                    var tabela = $("#tableCompras")[0];
+                    var corpoTabela = tabela.tBodies[0];                    
+
+                    var html = compras.map(c => {
+                        var cliente = clientes.find(cli => cli.id == c.idCliente) || {};
+                        var produto = produtos.find(p => p.id == c.idProduto) || {};
+
+                        return `<tr>
+                            <td>${c.id}</td>
+                            <td>${c.idCliente}</td>
+                            <td>${cliente.nome}</td>
+                            <td>${c.idProduto}</td>
+                            <td>${produto.nome}</td>
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCompra('${c.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirCompra('${c.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        </tr>`
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+
+
+
+
+                function carregarCrudAdministradores(){
+                    esconderCruds();
+                    $("#linkAdministradores").addClass("active");
+                    var administradores = obterAdministradores();
+                    var div = $("#divAdministradores")[0];                
+                    var tabela = $("#tableAdministradores")[0];
+                    var corpoTabela = tabela.tBodies[0];
+
+                    div.hidden = false;
+
+                    var html = administradores.map(a => `<tr>
+                        <td>${a.id}</td>
+                        <td>${a.login}</td>
+                        <td>${a.senha}</td>
+                        <td>
+                            <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoAdministrador('${a.id}')"><i class="material-icons">mode_edit</i></button>
+                        </td>
+                        <td>
+                            <button class="btn btn-danger btn-block" onclick="excluirAdministrador('${a.id}')"><i class="material-icons">delete_forever</i></button>
+                        </td>
+                    </tr>`);
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+
+                function cadastrarOuAtualizarAdministrador(){
+                    var id = $("#hiddenIdAdministrador").val();
+                    var login = $("#inputLoginAdministrador").val();
+                    var senha = $("#inputSenhaAdministrador").val();
+                    
+                    var administrador = {
+                        id: id,
+                        login: login,
+                        senha: senha
+                    };
+
+                    salvarAdministrador(administrador);
+
+                    $("#modalAdministradores").modal('toggle');
+                    carregarCrudAdministradores();
+                }
+                
+                function excluirAdministrador(id){
+                    deletarAdministrador(id);
+
+                    carregarCrudAdministradores();
+                }
+
+                function exibirAtualizacaoAdministrador(id){
+                    var administradores = obterAdministradores();
+
+                    var administrador = administradores.find(a => a.id == id);
+
+                    $("#hiddenIdAdministrador").val(administrador.id);
+                    $("#inputLoginAdministrador").val(administrador.login);
+                    $("#inputSenhaAdministrador").val(administrador.senha);
+
+                    $("#modalAdministradores").modal('toggle');
+                }
+
+                function limparCamposAdministrador(){
+                    $("#hiddenIdAdministrador").val("");
+                    $("#inputLoginAdministrador").val("");
+                    $("#inputSenhaAdministrador").val("");
+                }
+
+                function pesquisarAdministrador(){
+                    var criterio = new RegExp($("#inputAdministrador").val().toUpperCase());
+                    
+                    var administradores = obterAdministradores().filter(a => {
+                        
+                        return criterio.test(a.id.toUpperCase())
+                            || criterio.test(a.login.toUpperCase())
+                            || criterio.test(a.senha.toUpperCase());
+                    });
+
+                    var tabela = $("#tableAdministradores")[0];
+                    var corpoTabela = tabela.tBodies[0];                    
+
+                    var html = administradores.map(a => {
+                        
+                        return `<tr>
+                            <td>${a.id}</td>
+                            <td>${a.login}</td>
+                            <td>${a.senha}</td>
+                            <td>
+                                <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoAdministrador('${a.id}')"><i class="material-icons">mode_edit</i></button>
+                            </td>
+                            <td>
+                                <button class="btn btn-danger btn-block" onclick="excluirAdministrador('${a.id}')"><i class="material-icons">delete_forever</i></button>
+                            </td>
+                        </tr>`
+                    });
+                    
+                    $(corpoTabela).empty();
+                    $(corpoTabela).append(html.join(""));
+                }
+                
+            </script>
+        </head>
+        <body>
+            <div class="container-fluid">
+                <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                    <a class="navbar-brand" href="./area-restrita.html">DWT-4</a>
+                    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="navbar-nav mr-auto">
+                            <li class="nav-item">
+                                <a class="nav-link" id="linkCategorias" href="#" onclick="carregarCrudCategorias()">Categorias</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="linkProdutos" href="#" onclick="carregarCrudProdutos()">Produtos</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="linkClientes" href="#" onclick="carregarCrudClientes()">Clientes</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="linkCompras" href="#" onclick="carregarCrudCompras()">Compras</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="linkAdministradores" href="#" onclick="carregarCrudAdministradores()">Administradores</a>
+                            </li>
+                        </ul>                  
+                    </div>
+                </nav>
+            </div>
+            <br />        
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="jumbotron">                    
+                            <h1>Área Restrita</h1>
+                            <div class="text-right">
+                                <a href="#" class="btn btn-link" data-toggle="modal" data-target="#modalLogout">Sair</a>
+                            </div>                        
+                        </div>                        
+                    </div>
+                </div>
+
+                <div class="row" id="divCategorias" hidden>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modalCategorias" onclick="limparCamposCategoria()">
+                                    <span>Inserir <i class="material-icons">add_circle</i></span>
+                                    
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="inputCategoria" class="form-control" placeholder="Pesquise aqui...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" onclick="pesquisarCategoria()"><i class="material-icons">search</i></button>
+                                    </span>                                    
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <table id="tableCategorias" class="table table-responsive table-hover table-bordered table-striped">
+                            <caption>Categorias</caption>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Descrição</th>
+                                    <th scope="col">Editar</th>
+                                    <th scope="col">Excluir</th>
+                                </tr>
+                            </thead>
+                            <tbody>                               
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                </div>
+
+                <div class="row" id="divProdutos" hidden>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modalProdutos" onclick="limparCamposProduto()">Inserir <span class="material-icons">add_circle</span></button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="inputProduto" class="form-control" placeholder="Pesquise aqui...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" onclick="pesquisarProduto()"><i class="material-icons">search</i></button>
+                                    </span>                                    
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <table id="tableProdutos" class="table table-responsive table-hover table-bordered table-striped">
+                            <caption>Produtos</caption>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">ID Categoria</th>
+                                    <th scope="col">Nome Categoria</th>
+                                    <th scope="col">Nome</th>
+                                    <th scope="col">Descrição</th>
+                                    <th scope="col">Valor (R$)</th>
+                                    <th scope="col">Editar</th>
+                                    <th scope="col">Excluir</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            </tbody>
+                        </table>                            
+                    </div>
+                </div>
+
+                <div class="row" id="divClientes" hidden>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modalClientes" onclick="limparCamposCliente()">Inserir <span class="material-icons">add_circle</span></button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="inputCliente" class="form-control" placeholder="Pesquise aqui...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" onclick="pesquisarCliente()"><i class="material-icons">search</i></button>
+                                    </span>                                    
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <table id="tableClientes" class="table table-responsive table-hover table-bordered table-striped">
+                            <caption>Clientes</caption>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Nome</th>
+                                    <th scope="col">Data Nascimento</th>
+                                    <th scope="col">Telefone</th>
+                                    <th scope="col">Editar</th>
+                                    <th scope="col">Excluir</th>
+                                </tr>
+                            </thead>
+                            <tbody>                                        
+                            </tbody>
+                        </table>                                
+                    </div>
+                </div>
+
+                <div class="row" id="divCompras" hidden>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modalCompras" onclick="limparCamposCompra()">Inserir <span class="material-icons">add_circle</span></button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="inputCompra" class="form-control" placeholder="Pesquise aqui...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" onclick="pesquisarCompra()"><i class="material-icons">search</i></button>
+                                    </span>                                    
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <table id="tableCompras" class="table table-responsive table-hover table-bordered table-striped">
+                            <caption>Compras</caption>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">ID Cliente</th>
+                                    <th scope="col">Nome Cliente</th>
+                                    <th scope="col">ID Produto</th>
+                                    <th scope="col">Nome Produto</th>
+                                    <th scope="col">Editar</th>
+                                    <th scope="col">Excluir</th>
+                                </tr>
+                            </thead>
+                            <tbody>                                            
+                            </tbody>
+                        </table>                                    
+                    </div>
+                </div>
+
+                <div class="row" id="divAdministradores" hidden>
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <button class="btn btn-primary" data-toggle="modal" data-target="#modalAdministradores" onclick="limparCamposAdministrador()">Inserir <span class="material-icons">add_circle</span></button>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <input type="text" id="inputAdministrador" class="form-control" placeholder="Pesquise aqui...">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-info" onclick="pesquisarAdministrador()"><i class="material-icons">search</i></button>
+                                    </span>                                    
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <table id="tableAdministradores" class="table table-responsive table-hover table-bordered table-striped">
+                            <caption>Categorias</caption>
+                            <thead class="thead-light">
+                                <tr>
+                                    <th scope="col">ID</th>
+                                    <th scope="col">Login</th>
+                                    <th scope="col">Senha</th>
+                                    <th scope="col">Editar</th>
+                                    <th scope="col">Excluir</th>
+                                </tr>
+                            </thead>
+                            <tbody>                                            
+                            </tbody>
+                        </table>                                    
+                    </div>
+                </div>
+                
+                <div class="modal" tabindex="-1" role="dialog" id="modalLogout">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-body">
+                                <h4>Tem certeza que você quer sair?</h4>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" onclick="logout()">Sim</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal" aria-label="Close">Não</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" tabindex="-1" role="dialog" id="modalCategorias">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4>Categorias</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form>
+                                    <input type="hidden" id="hiddenIdCategoria">
+                                    <div class="form-group">
+                                        <label for="inputDescricaoCategoria">Descrição</label>                                            
+                                        <input type="text" id="inputDescricaoCategoria" class="form-control">                                        
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" onclick="cadastrarOuAtualizarCategoria()">Salvar</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal" aria-label="Close">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" tabindex="-1" role="dialog" id="modalProdutos">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4>Produtos</h4>
+                            </div>
+                            <div class="modal-body">
+                                <form>
+                                    <input type="hidden" id="hiddenIdProduto">
+                                    <div class="form-group">
+                                        <label for="selectCategoriaProduto">Categoria</label>
+                                        <select id="selectCategoriaProduto" class="form-control"></select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputNomeProduto">Nome</label>                                            
+                                        <input type="text" id="inputNomeProduto" class="form-control">                                        
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputDescricaoProduto">Descrição</label>                                            
+                                        <input type="text" id="inputDescricaoProduto" class="form-control">                                        
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="inputValorProduto">Valor (R$)</label>                                            
+                                        <input type="number" id="inputValorProduto" class="form-control">                                        
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" onclick="cadastrarOuAtualizarProduto()">Salvar</button>
+                                <button type="button" class="btn btn-danger" data-dismiss="modal" aria-label="Close">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal" tabindex="-1" role="dialog" id="modalClientes">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4>Clientes</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form>
+                                        <input type="hidden" id="hiddenIdCliente">
+                                        <div class="form-group">
+                                            <label for="inputNomeCliente">Nome</label>
+                                            <input type="text" id="inputNomeCliente" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputDataNascimentoCliente">Data Nascimento</label>                                            
+                                            <input type="date" id="inputDataNascimentoCliente" class="form-control">                                        
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputTelefoneCliente">Telefone</label>                                            
+                                            <input type="text" id="inputTelefoneCliente" class="form-control">                                        
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" onclick="cadastrarOuAtualizarCliente()">Salvar</button>
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal" aria-label="Close">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal" tabindex="-1" role="dialog" id="modalCompras">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4>Clientes</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form>
+                                        <input type="hidden" id="hiddenIdCompra">
+                                        <div class="form-group">
+                                            <label for="selectClienteCompra">Cliente</label>
+                                            <select id="selectClienteCompra" class="form-control"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="selectProdutoCompra">Produto</label>                                            
+                                            <select id="selectProdutoCompra" class="form-control"></select>                                     
+                                        </div>                                        
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" onclick="cadastrarOuAtualizarCompra()">Salvar</button>
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal" aria-label="Close">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal" tabindex="-1" role="dialog" id="modalAdministradores">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4>Clientes</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form>
+                                        <input type="hidden" id="hiddenIdAdministrador">
+                                        <div class="form-group">
+                                            <label for="inputLoginAdministrador">Login</label>
+                                            <input type="text" id="inputLoginAdministrador" class="form-control"></select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputSenhaAdministrador">Senha</label>                                            
+                                            <input type="text" id="inputSenhaAdministrador" class="form-control"></select>                                     
+                                        </div>                                        
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" onclick="cadastrarOuAtualizarAdministrador()">Salvar</button>
+                                    <button type="button" class="btn btn-danger" data-dismiss="modal" aria-label="Close">Cancelar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+            </div>
+        </div>
+    </body>
+</html>
