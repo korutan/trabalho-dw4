@@ -272,6 +272,7 @@
                             <td>${c.id}</td>
                             <td>${c.nome}</td>
                             <td>${c.dataNascimento}</td>
+                            <td>${c.endereco}</td>
                             <td>${c.telefone}</td>
                             <td>
                                 <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
@@ -291,12 +292,18 @@
                     var nome = $("#inputNomeCliente").val();
                     var dataNascimento = $("#inputDataNascimentoCliente").val();
                     var telefone = $("#inputTelefoneCliente").val();
+                    var endereco = $("#inputEndereco").val();
+                    var bairro = $("#inputBairro").val();
+                    var cidade = $("#inputCidade").val();
                     
                     var cliente = {
                         id: id,
                         nome: nome,
                         dataNascimento: dataNascimento,
-                        telefone: telefone
+                        telefone: telefone,
+                        endereco : endereco,
+                        bairro : bairro,
+                        cidade : cidade,
                     };
 
                     salvarCliente(cliente);
@@ -336,6 +343,9 @@
                             <td>${c.id}</td>
                             <td>${c.nome}</td>
                             <td>${c.dataNascimento}</td>
+                            <td>${c.endereco}</td>
+                            <td>${c.bairro}</td>
+                            <td>${c.cidade}</td>
                             <td>${c.telefone}</td>
                             <td>
                                 <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
@@ -737,6 +747,7 @@
                                     <th scope="col">ID</th>
                                     <th scope="col">Nome</th>
                                     <th scope="col">Data Nascimento</th>
+                                    <th scope="col">Endereço</th>
                                     <th scope="col">Telefone</th>
                                     <th scope="col">Editar</th>
                                     <th scope="col">Excluir</th>
@@ -906,8 +917,54 @@
                                             <input type="date" id="inputDataNascimentoCliente" class="form-control">                                        
                                         </div>
                                         <div class="form-group">
+                                            <label for="inputEndereco">Endereço</label>
+                                            <input type="text" id="inputEndereco" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputBairro">Bairro</label>
+                                            <input type="text" id="inputBairro" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputCidade">Cidade</label>
+                                            <input type="text" id="inputCidade" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputCep">Cep</label>
+                                            <input type="text" id="inputCep" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputEstado">Estado(UF)</label>
+                                            <input type="text" id="inputEstado" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputReferencia">Referência</label>
+                                            <input type="text" id="inputReferencia" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputCPF">CPF</label>
+                                            <input type="text" id="inputCPF" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputIdentidade">Identidade</label>
+                                            <input type="text" id="inputIdentidade" class="form-control" />
+                                        </div>
+                                      
+                                        <div class="form-group">
+                                            <label for="inputCartao">Numero do Cartão de Crédito</label>
+                                            <input type="text" id="inputCartao" class="form-control" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputBandeira">Bandeira do Cartão</label>
+                                            <input type="text" id="inputBandeira" class="form-control" />
+                                        </div>
+
+                                        <div class="form-group">
                                             <label for="inputTelefoneCliente">Telefone</label>                                            
                                             <input type="text" id="inputTelefoneCliente" class="form-control">                                        
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="inputCelular">Celular</label>
+                                            <input type="text" id="inputCelular" class="form-control" />
                                         </div>
                                     </form>
                                 </div>
