@@ -273,7 +273,17 @@
                             <td>${c.nome}</td>
                             <td>${c.dataNascimento}</td>
                             <td>${c.endereco}</td>
+                            <td>${c.bairro}</td>
+                            <td>${c.cidade}</td>
+                            <td>${c.cep}</td>
+                            <td>${c.estado}</td>
+                            <td>${c.referencia}</td>
+                            <td>${c.cpf}</td>
+                            <td>${c.identidade}</td>
+                            <td>${c.cartao}</td>
+                            <td>${c.bandeira}</td>
                             <td>${c.telefone}</td>
+                            <td>${c.celular}</td>
                             <td>
                                 <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
                             </td>
@@ -295,6 +305,15 @@
                     var endereco = $("#inputEndereco").val();
                     var bairro = $("#inputBairro").val();
                     var cidade = $("#inputCidade").val();
+                    var cep = $("#inputCep").val();
+                    var estado = $("#inputEstado").val();
+                    var referencia = $("#inputReferencia").val();
+                    var cpf  = $("#inputCPF").val();
+                    var identidade = $("#inputIdentidade").val();
+                    var cartao = $("#inputCartao").val();
+                    var bandeira = $("#inputBandeira").val();
+                    var celular = $("#inputCelular").val();
+
                     
                     var cliente = {
                         id: id,
@@ -304,6 +323,14 @@
                         endereco : endereco,
                         bairro : bairro,
                         cidade : cidade,
+                        cep : cep,
+                        estado : estado,
+                        referencia : referencia,
+                        cpf : cpf,
+                        identidade : identidade,
+                        cartao : cartao,
+                        bandeira : bandeira,
+                        celular : celular,
                     };
 
                     salvarCliente(cliente);
@@ -346,7 +373,15 @@
                             <td>${c.endereco}</td>
                             <td>${c.bairro}</td>
                             <td>${c.cidade}</td>
+                            <td>${c.cep}</td>
+                            <td>${c.estado}</td>
+                            <td>${c.referencia}</td>
+                            <td>${c.cpf}</td>
+                            <td>${c.identidade}</td>
+                            <td>${c.cartao}</td>
+                            <td>${c.bandeira}</td>
                             <td>${c.telefone}</td>
+                            <td>${c.celular}</td>
                             <td>
                                 <button class="btn btn-warning btn-block" onclick="exibirAtualizacaoCliente('${c.id}')"><i class="material-icons">mode_edit</i></button>
                             </td>
@@ -748,7 +783,17 @@
                                     <th scope="col">Nome</th>
                                     <th scope="col">Data Nascimento</th>
                                     <th scope="col">Endereço</th>
+                                    <th scope="col">Bairro</th>
+                                    <th scope="col">Cidade</th>
+                                    <th scope="col">Cep</th>
+                                    <th scope="col">Estado</th>
+                                    <th scope="col">Referência</th>
+                                    <th scope="col">CPF</th>
+                                    <th scope="col">Identidade</th>
+                                    <th scope="col">Número do Cartão</th>
+                                    <th scope="col">Bandeira do Cartão</th>
                                     <th scope="col">Telefone</th>
+                                    <th scope="col">Celular</th>
                                     <th scope="col">Editar</th>
                                     <th scope="col">Excluir</th>
                                 </tr>
